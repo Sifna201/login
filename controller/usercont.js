@@ -1,9 +1,10 @@
 const userData = require("../models/user.js")
 const Otp= require("../models/otp.js")
 const bcrypt = require("bcrypt");
-const otp = require("../models/otp.js");
+
 const { token } = require("morgan");
-const User = require("../models/user.js");
+
+
 
 module.exports={ createUser :async (req, res) => {
     const { name,
@@ -17,19 +18,19 @@ module.exports={ createUser :async (req, res) => {
     try {
       const existingUser = await userData.findOne({$or:[{ email },{phone}]});
       if (!name || !email ||!phone|| !username||!password || !confPassword) {
-        return res.status(400).json({ message: 'Please enter all fields' });
+        return res.json({status : "fail" ,message: 'Please enter all fields' });
       }
     
       if (password != confPassword) {
-        return res.status(400).json({message: 'Passwords do not match' });
+        return res.json({status : "fail",message: 'Passwords do not match' });
       }
     
       if (password.length < 6) {
-        return res.status(400).json({message:'Password must be at least 6 characters' });
+        return res.json({status : "fail",message:'Password must be at least 6 characters' });
       }
   
       if (existingUser)
-        return res.status(400).json({ message: "Email or phone already registerd " });
+        return res.json({status : "fail", message: "Email or phone already registerd " });
       
       else{
       const hashPassword = await bcrypt.hash(password, 12);
@@ -48,7 +49,11 @@ module.exports={ createUser :async (req, res) => {
       //   { expiresIn: "2h" }
       // );
       await result.save();
-      res.status(200).json({message:"successfully registered..thank you!" });
+      res.json({
+        status : "success",
+        message: "register successfully ,thank you!" })
+         
+    
     } }catch (error) {
       console.log(error.message);
     }
@@ -69,7 +74,7 @@ profile:async (req,res)=>{
       const existingUser = await userData.findOne({ username });
   
       if (!existingUser)
-        return res.status(400).json({ message: "user not found " });
+        return res.json({status : "fail", message: "user not found " });
   
       const isPasswordCorrect = await bcrypt.compare(
         password,
@@ -77,7 +82,7 @@ profile:async (req,res)=>{
       );
   
       if (!isPasswordCorrect)
-        return res.status(400).json({ message: "incorrect password " });
+        return res.json({status : "fail", message: "incorrect password " });
   
       // const token = jwt.sign(
       //   {
@@ -89,7 +94,7 @@ profile:async (req,res)=>{
       //   { expiresIn: "2h" }
       // );
   
-      res.status(200).json({ message:"login successfully" });
+      res.json({status : "success", message:"login successfully" });
     } catch (error) {
       console.log(error.message);
     }
@@ -104,28 +109,39 @@ profile:async (req,res)=>{
       expireIn:new Date().getTime()+300*1000})
     
     let otpRespone=await otpData.save()
-    res.status(200).json("please check your email")}
+    mailer(req.body.email,otpRespone.code)
+    res.json({status : "success",message:"please check your email"})}
     else{
-      res.status(404).json("email not exist")
+      res.json({status : "fail",message:"email not exist"})
     }
   },
   changePassword:async (req, res) => {
-    let data=await otp.find({email:req.body.email,code:req.body.otpCode})
+    email=req.body.email
+    otpCode=req.body.code
+    console.log(otpCode)
+    let data=await Otp.find({email:email,code:otpCode})
+    //let data=await otp.findOne({code:otpCode})
     console.log(data)
-    if(data){
+   
+    if(data && data.length>0){
       let currentTime=new Date().getTime()
-      let diff=data.expireIn-currentTime
+      console.log(currentTime)
+      let diff=data[0].expireIn-currentTime
+      console.log(diff)
       if(diff<0){
-        res.status(404).json({message:"token expire"})
+        res.json({status : "fail",message:"token expire"})
       }else{
         let user=await userData.findOne({email:req.body.email})
-        user.password=req.body.password
+        //console.log(user)
+        const hashPassword = await bcrypt.hash(req.body.password, 12);
+        user.password=hashPassword
+        console.log(user.password)
         user.save()
-        res.status(200).json({message:"password changed successfully"})
+        res.json({status : "success",message:"password changed successfully"})
       }
     }
     else{
-      res.status(404).json("invalid otp")
+      res.json({status : "fail",message:"invalid otp"})
     }
     }}
    
@@ -136,15 +152,15 @@ profile:async (req,res)=>{
         port:587,
         secure:false,
         auth:{
-          user:'code@gmail.com',
-          pass:'123'
+          user:'ayishasifna@gmail.com',
+          pass:'kvthkbvgfnzpyywe'
         }
       })
       var mailOptions={
-        from:'code@gmail.com',
-        to:"ayishasifna@gmail.com",
+        from:'ayishasifna@gmail.com',
+        to:"fathimathasneem3621@gmail.com",
         subject:"otp verification",
-        text:"thank"
+        text:otp
       }
       transporter.sendMail(mailOptions,(err,info)=>{
         if(err){
