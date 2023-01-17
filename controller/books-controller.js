@@ -109,20 +109,20 @@ module.exports.getCategory = (id, callback) => {
     message.find({ category: id }, callback).populate('category')
 }
 //USER BOOK
-// user=userData.find()
-// console.log(user)
-// const userBookList = async (req, res, next) => {
-//     const userbook=await userBook.create({
-//     custometId:String,
-//     bookId:String,
-//     date:new date(),
-//     fine:Number
-//     })
 
-// }
+const userBookList = async (req, res, next) => {
+    const userbook=await userBook.create({
+    customertId:req.bodcdy.customertId,
+    bookId:req.body.bookId,
+    date:new date(),
+    fine:Number
+    })
+
+ }
 exports.getAllBooks = getAllBooks;
 exports.searchBook = searchBook
 exports.addBook = addBook;
 exports.updateBook = updateBook;
 exports.deleteBook = deleteBook;
 exports.groupcat = groupcat;
+exports.userBookList=userBookList

@@ -46,6 +46,7 @@ router.post('/category', booksController.groupcat)
 router.post("/nextbutton",loginUser)
 router.post("/selectPlan",membership)
 router.post("/transaction",transaction)
+router.post("/bookclick",booksController.userBookList)
 // mongoose
 mongoose.connect("mongodb://127.0.0.1:27017/userDetails").then(()=>{
     

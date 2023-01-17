@@ -3,7 +3,7 @@ const mongoose = require("mongoose")
 // creating model
 
 const userBookSchema = new mongoose.Schema({
-    custometId:String,
+    customertId:String,
     bookId:String,
     date:Date,
     fine:Number
