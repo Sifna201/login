@@ -4,8 +4,9 @@ const multer=require('multer')
 var  path = require("path")
 var mongoose = require("mongoose")
 const bodyParser = require("body-parser") 
-const {createUser,profile, loginUser,emailSend,changePassword} = require("../controller/usercont.js");
-const booksController=require("../controller/books-controller")
+const {createUser,profile, loginUser,emailSend,otpcheck,changePassword} = require("../controller/usercont.js");
+const booksController=require("../controller/books-controller");
+const { membership, transaction } = require('../controller/membershipcont.js');
 const uplodPath = path.join('../public/images')
 const imageTypes = ['images/jpeg', 'images/png',]
 const upload = multer({ dest: 'uploads/' })
@@ -33,14 +34,18 @@ router.get("/logout",(req,res)=>{
   res.redirect("home")
 })
 router.post("/emailSend",emailSend)
+router.post("/otpcheck",otpcheck)
 router.post("/changePassword",changePassword)
 
 router.get('/books', booksController.getAllBooks)
 router.get('/search', booksController.searchBook)
-router.post('/books', booksController.addBook)
+router.post('/add', booksController.addBook)
 router.put('/:id', booksController.updateBook)
 router.delete('/:id', booksController.deleteBook)
-
+router.post('/category', booksController.groupcat)
+router.post("/nextbutton",loginUser)
+router.post("/selectPlan",membership)
+router.post("/transaction",transaction)
 // mongoose
 mongoose.connect("mongodb://127.0.0.1:27017/userDetails").then(()=>{
     

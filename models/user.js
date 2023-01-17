@@ -8,7 +8,8 @@ const userSchema = new mongoose.Schema({
     phone:Number,
     username : String,
     password:String,
-    confPassword:String
+    confPassword:String,
+    is_admin:Boolean
 })
 
 

@@ -1,7 +1,7 @@
 const userData = require("../models/user.js")
 const Otp= require("../models/otp.js")
 const bcrypt = require("bcrypt");
-
+var strings = require('node-strings');
 const { token } = require("morgan");
 
 
@@ -101,25 +101,24 @@ profile:async (req,res)=>{
   },
   emailSend :async (req, res) => {
     let data=await userData.findOne({email:req.body.email})
-    const response={}
+    
     if(data){
-      let otpCode=Math.floor((Math.random()*1000+1))
+      let otpCode=Math.floor((Math.random()*(99999-10000)+100000))
       let otpData=new Otp({email:req.body.email,
       code:otpCode,
       expireIn:new Date().getTime()+300*1000})
     
     let otpRespone=await otpData.save()
-    mailer(req.body.email,otpRespone.code)
+    var otpResponeCode=otpRespone.code
+    mailer(req.body.email,otpResponeCode)
     res.json({status : "success",message:"please check your email"})}
     else{
       res.json({status : "fail",message:"email not exist"})
     }
   },
-  changePassword:async (req, res) => {
-    email=req.body.email
+  otpcheck:async (req, res) => {
     otpCode=req.body.code
-    console.log(otpCode)
-    let data=await Otp.find({email:email,code:otpCode})
+    let data=await Otp.find({code:otpCode})
     //let data=await otp.findOne({code:otpCode})
     console.log(data)
    
@@ -131,22 +130,28 @@ profile:async (req,res)=>{
       if(diff<0){
         res.json({status : "fail",message:"token expire"})
       }else{
-        let user=await userData.findOne({email:req.body.email})
-        //console.log(user)
-        const hashPassword = await bcrypt.hash(req.body.password, 12);
-        user.password=hashPassword
-        console.log(user.password)
-        user.save()
-        res.json({status : "success",message:"password changed successfully"})
-      }
-    }
+        res.json({status : "success",message:"otp approved"})}
+    }   
     else{
       res.json({status : "fail",message:"invalid otp"})
     }
-    }}
-   
+    },
+    changePassword:async (req, res) => {
+    let user=await userData.findOne({email:req.body.email})
+    //console.log(user)
+    const hashPassword = await bcrypt.hash(req.body.password, 12);
+    user.password=hashPassword
+    console.log(user.password)
+    user.save()
+    res.json({status : "success",message:"password changed successfully"})
+    },
+}
+
     const mailer=(email,otp)=>{
       var nodemailer=require('nodemailer')
+    //   console.log(otp)
+    //  var otpResponeCode=strings.bold(otp)
+    //  console.log(otpResponeCode)
       var transporter=nodemailer.createTransport({
         service:'gmail',
         port:587,
@@ -159,8 +164,9 @@ profile:async (req,res)=>{
       var mailOptions={
         from:'ayishasifna@gmail.com',
         to:"fathimathasneem3621@gmail.com",
-        subject:"otp verification",
-        text:otp
+        subject:otp+"otp verification",
+        html:"<h3>Hi! Here is your single use verification code for:</h3>" + "<h1 style='font-weight:bold;'>" + otp + "</h1>"+
+        "<p>Be quick! it expire soon</p>"
       }
       transporter.sendMail(mailOptions,(err,info)=>{
         if(err){

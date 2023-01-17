@@ -1,6 +1,8 @@
 const Book = require('../models/Books');
+const userbook = require('../models/userbook');
 const category = require('../models/category');
-
+const userData= require("../models/user.js")
+const group = require('../models/categoriesgroup');
 const getAllBooks = async (req, res, next) => {
     let book;
     try {
@@ -24,7 +26,7 @@ const searchBook = async (req, res, next) => {
         
        
     } catch (err) {
-        console.log()
+        console.log(err)
     }
     if (!book) {
         return res.json({status : "fail" ,message: 'Oops! Not Found' })
@@ -33,8 +35,11 @@ const searchBook = async (req, res, next) => {
 };
 const addBook = async (req, res, next) => {
     const { name, author, description, image, category } = req.body
+    bookexist = await Book.findOne({name:name})
+    
     let book;
     try {
+        if(!bookexist){
         book = new Book({
             name,
             author,
@@ -43,7 +48,11 @@ const addBook = async (req, res, next) => {
             category
 
         })
-        await book.save()
+        await book.save()}
+        else{
+            return res.json({status : "fail" ,message: 'book already exist' }) 
+        }
+
     } catch (err) {
         console.log(err)
     }
@@ -68,7 +77,7 @@ const updateBook = async (req, res, next) => {
         });
         book = await book.save()
     } catch (err) {
-        console.log()
+        console.log(err)
     }
     if (!book) {
         return res.json({status : "fail", message: 'Unable to Update' })
@@ -88,26 +97,32 @@ const deleteBook = async (req, res, next) => {
     }
     return res.json({ status : "success",message: 'Product Successfully Deleted!!' })
 }
+const groupcat = async (req, res, next) => {
+    const categoriesGroup=await group.create({
+        book_id:req.body.bookId,
+        category_id:req.body.categoryId
+    })
+    await categoriesGroup.save()
+    res.json({ status : "success",message:categoriesGroup})
+}
+module.exports.getCategory = (id, callback) => {
+    message.find({ category: id }, callback).populate('category')
+}
+//USER BOOK
+// user=userData.find()
+// console.log(user)
+// const userBookList = async (req, res, next) => {
+//     const userbook=await userBook.create({
+//     custometId:String,
+//     bookId:String,
+//     date:new date(),
+//     fine:Number
+//     })
 
-// module.exports.getCategory = (id, callback) => {
-//     message.find({ category: id }, callback).populate('category')
 // }
-// var query = Book.find({ "category": "novel" }).populate("category")
-var result=category.aggregate([
-    {
-      $lookup:
-        {
-          from: Book,
-          localField: "name",
-          foreignField: "category",
-          as: "newList"
-        }
-    }
-  ])
-    
-
 exports.getAllBooks = getAllBooks;
 exports.searchBook = searchBook
 exports.addBook = addBook;
 exports.updateBook = updateBook;
 exports.deleteBook = deleteBook;
+exports.groupcat = groupcat;
