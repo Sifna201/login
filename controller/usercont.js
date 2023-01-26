@@ -145,25 +145,42 @@ profile:async (req,res)=>{
     console.log(user.password)
     user.save()
     res.json({status : "success",message:"password changed successfully"})
-    }}
-   function authenticateToken(req, res, next) {
-      const authHeader = req.headers['authorization']
-      const token = authHeader && authHeader.split(' ')[1]
+    }, verifyToken: async (req, res, next) => {
+      try {
+          let token = req.header('Authorization')
+          console.log(token)
+          if (!token) {
+              return res.status(403).send("Access Denied");
+  
+          }
+          if (token.startsWith('Bearer ')) {
+              token = token.slice(7, token.length).trimLeft()
+              
+          }
+          const verified = jwt.verify(token, process.env.TOKEN_SECRET,)
+          req.user = verified
+          next()
+      } catch(err) {
+          res.status(500).json({error:err.message})
+      }}}
+  //  function authenticateToken(req, res, next) {
+  //     const authHeader = req.headers['authorization']
+  //     const token = authHeader && authHeader.split(' ')[1]
     
-      if (token == null) return res.sendStatus(401)
+  //     if (token == null) return res.sendStatus(401)
     
-      jwt.verify(token, process.env.TOKEN_SECRET , (err, user) => {
+  //     jwt.verify(token, process.env.TOKEN_SECRET , (err, user) => {
         
-        if (err) return res.sendStatus(403)
+  //       if (err) return res.sendStatus(403)
     
-        req.user = user
-        console.log(user)
+  //       req.user = user
+  //       console.log(user)
     
-        next()
-      })
-    }
-
-
+  //       next()
+  //     })
+   // }
+    
+  
     const mailer=(email,otp)=>{
       var nodemailer=require('nodemailer')
     //   console.log(otp)

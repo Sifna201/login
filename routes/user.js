@@ -4,7 +4,7 @@ const multer=require('multer')
 var  path = require("path")
 var mongoose = require("mongoose")
 const bodyParser = require("body-parser") 
-const {createUser,profile, loginUser,emailSend,otpcheck,changePassword,authenticateToken} = require("../controller/usercont.js");
+const {createUser,profile, loginUser,emailSend,otpcheck,changePassword,verifyToken} = require("../controller/usercont.js");
 const booksController=require("../controller/books-controller");
 const { membership, transaction,bookreturn,userBookList } = require('../controller/membershipcont.js');
 const uplodPath = path.join('../public/images')
@@ -50,7 +50,7 @@ router.post('/category', booksController.groupcat)
 router.post("/nextbutton",loginUser)
 router.post("/selectPlan",membership)
 
-//router.post("/bookclick",userBookList,authenticateToken)
+router.post("/bookclick",verifyToken,userBookList)
 router.post("/bookreturn",bookreturn)  
 mongoose.connect("mongodb://127.0.0.1:27017/userDetails").then(()=>{
   console.log("server started")
