@@ -6,7 +6,8 @@ const userBookSchema = new mongoose.Schema({
     customertId:String,
     bookId:String,
     date:Date,
-    fine:Number
+    returndate:Date,
+    fine:String
 })
 
 

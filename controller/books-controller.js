@@ -1,5 +1,5 @@
 const Book = require('../models/Books');
-const userbook = require('../models/userbook');
+const userBook = require('../models/userbook');
 const category = require('../models/category');
 const userData= require("../models/user.js")
 const group = require('../models/categoriesgroup');
@@ -45,10 +45,10 @@ const addBook = async (req, res, next) => {
             author,
             description,
             image,
-            category
 
         })
-        await book.save()}
+        await book.save()
+        }
         else{
             return res.json({status : "fail" ,message: 'book already exist' }) 
         }
@@ -62,28 +62,8 @@ const addBook = async (req, res, next) => {
     return res.status(201).json({ book })
 
 };
-const updateBook = async (req, res, next) => {
-    const id = req.params.id;
-    const { name, author, description, image, category } = req.body
-    let book;
-    try {
-        book = await Book.findByIdAndUpdate(id, {
-            name,
-            author,
-            description,
-            image,
-            category
 
-        });
-        book = await book.save()
-    } catch (err) {
-        console.log(err)
-    }
-    if (!book) {
-        return res.json({status : "fail", message: 'Unable to Update' })
-    }
-    return res.json({status : "success" ,message: book })
-};
+    
 const deleteBook = async (req, res, next) => {
     const id = req.params.id;
     let book;
@@ -105,24 +85,11 @@ const groupcat = async (req, res, next) => {
     await categoriesGroup.save()
     res.json({ status : "success",message:categoriesGroup})
 }
-module.exports.getCategory = (id, callback) => {
-    message.find({ category: id }, callback).populate('category')
-}
-//USER BOOK
 
-const userBookList = async (req, res, next) => {
-    const userbook=await userBook.create({
-    customertId:req.bodcdy.customertId,
-    bookId:req.body.bookId,
-    date:new date(),
-    fine:Number
-    })
 
- }
+
 exports.getAllBooks = getAllBooks;
 exports.searchBook = searchBook
 exports.addBook = addBook;
-exports.updateBook = updateBook;
 exports.deleteBook = deleteBook;
 exports.groupcat = groupcat;
-exports.userBookList=userBookList

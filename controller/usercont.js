@@ -3,7 +3,12 @@ const Otp= require("../models/otp.js")
 const bcrypt = require("bcrypt");
 var strings = require('node-strings');
 const { token } = require("morgan");
+const jwt = require("jsonwebtoken");
+const config = require("../config/auth.config");
+const dotenv = require('dotenv');
 
+// get config vars
+dotenv.config();
 
 
 module.exports={ createUser :async (req, res) => {
@@ -40,14 +45,10 @@ module.exports={ createUser :async (req, res) => {
         phone,
         email,
         password: hashPassword,
-        username
+        username,
+        is_admin:false
       });
-  
-      // const token = jwt.sign(
-      //   { email: result.email, id: result._id, userName: result.username },
-      //   process.env.JWT_SECRET,
-      //   { expiresIn: "2h" }
-      // );
+     
       await result.save();
       res.json({
         status : "success",
@@ -84,17 +85,16 @@ profile:async (req,res)=>{
       if (!isPasswordCorrect)
         return res.json({status : "fail", message: "incorrect password " });
   
-      // const token = jwt.sign(
-      //   {
-      //     email: existingUser.email,
-      //     id: existingUser._id,
-      //     userName: existingUser.userName,
-      //   },
-      //   process.env.JWT_SECRET,
-      //   { expiresIn: "2h" }
-      // );
-  
+        
+      
+      const token = jwt.sign(
+        { userName: req.body.username },
+        process.env.TOKEN_SECRET,
+        { expiresIn: "2h" }
+      );
+      res.cookie('cookie', token, {expires: new Date(Date.now() + 9999999)});
       res.json({status : "success", message:"login successfully" });
+    
     } catch (error) {
       console.log(error.message);
     }
@@ -115,6 +115,7 @@ profile:async (req,res)=>{
     else{
       res.json({status : "fail",message:"email not exist"})
     }
+    authenticateToken()
   },
   otpcheck:async (req, res) => {
     otpCode=req.body.code
@@ -144,8 +145,24 @@ profile:async (req,res)=>{
     console.log(user.password)
     user.save()
     res.json({status : "success",message:"password changed successfully"})
-    },
-}
+    }}
+   function authenticateToken(req, res, next) {
+      const authHeader = req.headers['authorization']
+      const token = authHeader && authHeader.split(' ')[1]
+    
+      if (token == null) return res.sendStatus(401)
+    
+      jwt.verify(token, process.env.TOKEN_SECRET , (err, user) => {
+        
+        if (err) return res.sendStatus(403)
+    
+        req.user = user
+        console.log(user)
+    
+        next()
+      })
+    }
+
 
     const mailer=(email,otp)=>{
       var nodemailer=require('nodemailer')
@@ -176,4 +193,5 @@ profile:async (req,res)=>{
         }
       })
     }
-  
+
+    
