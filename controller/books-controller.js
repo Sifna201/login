@@ -3,7 +3,8 @@ const userBook = require('../models/userbook');
 const category = require('../models/category');
 const userData= require("../models/user.js")
 const group = require('../models/categoriesgroup');
-const getAllBooks = async (req, res, next) => {
+class Books{
+ async getAllBooks  (req, res, next)  {
     let book;
     try {
         book = await Book.find()
@@ -15,8 +16,8 @@ const getAllBooks = async (req, res, next) => {
     }
     return res.json({status : "success" ,message:book })
 
-};
-const searchBook = async (req, res, next) => {
+}
+ async searchBook (req, res, next) {
     
     
     let book;
@@ -32,8 +33,8 @@ const searchBook = async (req, res, next) => {
         return res.json({status : "fail" ,message: 'Oops! Not Found' })
     }
     return res.json({status : "success" ,message: book })
-};
-const addBook = async (req, res, next) => {
+}
+ async addBook (req, res, next) {
     const { name, author, description, image, category } = req.body
     bookexist = await Book.findOne({name:name})
     
@@ -61,11 +62,10 @@ const addBook = async (req, res, next) => {
     }
     return res.status(201).json({ book })
 
-};
-
-    
-const deleteBook = async (req, res, next) => {
+}
+ async deleteBook (req, res, next) {
     const id = req.params.id;
+    console.log(id)
     let book;
     try {
         book = await Book.findByIdAndRemove(id)
@@ -77,7 +77,7 @@ const deleteBook = async (req, res, next) => {
     }
     return res.json({ status : "success",message: 'Product Successfully Deleted!!' })
 }
-const groupcat = async (req, res, next) => {
+async groupcat (req, res, next) {
     const categoriesGroup=await group.create({
         book_id:req.body.bookId,
         category_id:req.body.categoryId
@@ -85,11 +85,7 @@ const groupcat = async (req, res, next) => {
     await categoriesGroup.save()
     res.json({ status : "success",message:categoriesGroup})
 }
+}
 
 
-
-exports.getAllBooks = getAllBooks;
-exports.searchBook = searchBook
-exports.addBook = addBook;
-exports.deleteBook = deleteBook;
-exports.groupcat = groupcat;
+module.exports=Books

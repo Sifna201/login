@@ -6,11 +6,13 @@ const userData= require("../models/user.js")
 const date=require("date-and-time");
 const userBook = require('../models/userbook');
 const { findOneAndDelete } = require('../models/userbook');
+const verifyToken=require("./usercont")
 module.exports={
    
 
 membership :async (req, res) => {
- 
+
+ console.log(req.user)
  const date1=new Date()
  const expdate=date.addDays(date1,req.body.validity)
  let data=await membership_plan.findOne({_id:req.body.membershipPlan_id})
@@ -18,7 +20,7 @@ membership :async (req, res) => {
  console.log(data)
  //expdate=date+validity
  //console.log(expdate)
- const membership1=await User_membership.create({user_id:req.body.user_id,
+ const membership1=await User_membership.create({user_id:req.user,
     membershipPlan_id:req.body.membershipPlan_id,
     transaction_id:req.body.transaction_id,
     expDate:expdate
@@ -28,9 +30,9 @@ membership :async (req, res) => {
 },
   
  userBookList :async (req, res) => {
-  
+  console.log(req.user)
   const userbook=await userBook.create({
-  customertId:req.body.customertId,
+  customertId:req.user,
   bookId:req.body.bookId,
   date:new Date()
   
@@ -57,7 +59,7 @@ membership :async (req, res) => {
    let trans= await transaction.create({
       type:"fine",
       amount:fine,
-      userid:req.body.user_id
+      userid:req.user
   })
   await userBook.findOneAndUpdate(req.body.bookid,{fineid:trans.id})
   }
