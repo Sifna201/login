@@ -6,45 +6,41 @@ const userData= require("../models/user.js")
 const date=require("date-and-time");
 const userBook = require('../models/userbook');
 const { findOneAndDelete } = require('../models/userbook');
-const verifyToken=require("./usercont")
-module.exports={
-   
 
-membership :async (req, res) => {
+class membershipcont{
+   
+async membership  (membershipPlan_id,transaction_id,validity)  {
 
  console.log(req.user)
  const date1=new Date()
  const expdate=date.addDays(date1,req.body.validity)
- let data=await membership_plan.findOne({_id:req.body.membershipPlan_id})
- //validity=data.validity
- console.log(data)
- //expdate=date+validity
- //console.log(expdate)
+ let data=await membership_plan.findOne({_id:membershipPlan_id})
  const membership1=await User_membership.create({user_id:req.user,
-    membershipPlan_id:req.body.membershipPlan_id,
-    transaction_id:req.body.transaction_id,
+    membershipPlan_id:membershipPlan_id,
+    transaction_id:transaction_id,
     expDate:expdate
   } )
-  res.json({status:"success",message:"success"})
+  return "{'status':'success','message':'success'}"
   
-},
+}
   
- userBookList :async (req, res) => {
-  console.log(req.user)
+  async userBookList (bookId) {
+  
   const userbook=await userBook.create({
   customertId:req.user,
-  bookId:req.body.bookId,
+  bookId:bookId,
   date:new Date()
   
   
 
   
   })
-  res.json({status:"success",message:"success"})
+  return "{status:'success','message':'success'}"
 
-},bookreturn :async function get (req, res)  {
+}
+async bookreturn(bookId)  {
   let date1=new Date()
-  let data=await userBook.findOne({bookId:req.body.bookid})
+  let data=await userBook.findOne({bookId:bookId})
   console.log(data)
   let startDate=data.date
   let checkdate=date.addDays(startDate,10)
@@ -61,13 +57,13 @@ membership :async (req, res) => {
       amount:fine,
       userid:req.user
   })
-  await userBook.findOneAndUpdate(req.body.bookid,{fineid:trans.id})
+  await userBook.findOneAndUpdate(bookId,{fineid:trans.id})
   }
   else{
     var fine=0
   }
   
-  userBook.findOneAndUpdate(req.body.bookid,{
+  userBook.findOneAndUpdate(bookId,{
     returndate:date1}
   ,function (err, docs) {
     if (err){
@@ -76,10 +72,11 @@ membership :async (req, res) => {
     else{
      
       console.log(docs)
-      res.json({status:"success",message:"return successfully"})
+      return "{'status':'success','message':'return successfully'}"
     }
 });
   
   
      
 }}
+module.exports=membershipcont

@@ -1,54 +1,35 @@
-// var express = require('express');
-// var router = express.Router();
-// const multer=require('multer')
-// var  path = require("path")
-// var mongoose = require("mongoose")
-// const bodyParser = require("body-parser") 
-// const {createUser,profile, loginUser,emailSend,otpcheck,changePassword,verifyToken} = require("../controller/usercont.js");
-// const booksController=require("../controller/books-controller");
-// const { membership, transaction,bookreturn,userBookList } = require('../controller/membershipcont.js');
-// const uplodPath = path.join('../public/images')
-// const imageTypes = ['images/jpeg', 'images/png',]
-// const upload = multer({ dest: 'uploads/' })
+var express = require('express');
+var router = express.Router();
+const multer=require('multer')
+var  path = require("path")
+var mongoose = require("mongoose")
+const bodyParser = require("body-parser") 
 
-// router.get("/getstarted",(req,res)=>{
-// res.render("register page")
-// })
-// router.get("/signin",(req,res)=>{
-//   res.render("loginpage")
-// })
-// router.get("/register",(req,res)=>{
-// res.redirect("login page")})
-// router.post("/register",createUser)
-// router.get("/login",(req,res)=>{
-//   res.render("categories")})
-// router.post("/login",loginUser)
-// router.get("/profile",verifyToken,profile)
-// router.get("/home",(req,res)=>{
-//   res.redirect("categories")
-// })
-// router.get("/alreadyaccount",(req,res)=>{
-//   res.redirect("login")
-// })
-// router.get("/logout",(req,res)=>{
-//   res.redirect("home")
-// })
-// router.post("/emailSend",verifyToken,emailSend)
-// router.post("/otpcheck",verifyToken,otpcheck)
-// router.post("/changePassword",verifyToken,changePassword)
+const uplodPath = path.join('../public/images')
+const imageTypes = ['images/jpeg', 'images/png',]
+const upload = multer({ dest: 'uploads/' })
+const Bookscont=require("../controller/books-controller");
+const  membershipcont = require('../controller/membershipcont.js');
+const Users = require('../controller/usercontroller.js');
 
-// router.get('/books', verifyToken,booksController.getAllBooks)
-// router.get('/search',verifyToken, booksController.searchBook)
-// router.post('/add',verifyToken, booksController.addBook)
+router.post('/add',async(req,res)=>{
+    const { name, author, description, image, category } = req.body
+    var obj=new Bookscont()
+    return res.send(await obj.addBook(name, author, description, image, category))
+})
 
-// router.delete('/:id', verifyToken,booksController.deleteBook)
-// router.post('/category',verifyToken ,booksController.groupcat)
+router.delete('/:id', async(req,res)=>{
+    
+    var obj=new Bookscont()
+    return res.send(await obj.deleteBookBook())
+})
+//router.post('/category',verifyToken ,booksController.groupcat)
 
 
 
-// mongoose.connect("mongodb://127.0.0.1:27017/userDetails").then(()=>{
-//   console.log("server started")
-// })
-// module.exports=router
+mongoose.connect("mongodb://127.0.0.1:27017/userDetails").then(()=>{
+  console.log("server started")
+})
+module.exports=router
 
 

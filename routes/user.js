@@ -5,13 +5,13 @@ var  path = require("path")
 var mongoose = require("mongoose")
 const bodyParser = require("body-parser") 
 
-const booksController=require("../controller/books-controller");
-const { membership, transaction,bookreturn,userBookList } = require('../controller/membershipcont.js');
+const Bookscont=require("../controller/books-controller");
+const  membershipcont = require('../controller/membershipcont.js');
+const Users = require('../controller/usercontroller.js');
 const uplodPath = path.join('../public/images')
 const imageTypes = ['images/jpeg', 'images/png',]
 const upload = multer({ dest: 'uploads/' })
-const userData = require("../models/user.js");
-const Users = require('../controller/usercontroller.js');
+
 // router.get("/getstarted",(req,res)=>{
 // res.render("register page")
 // })
@@ -20,7 +20,12 @@ const Users = require('../controller/usercontroller.js');
 // })
 // router.get("/register",(req,res)=>{
 // res.redirect("login page")})
-// //router.post("/register",createUser)
+router.post("/register",async(req,res)=>{
+  const { name,email,phone,username,password,confPassword} = req.body
+  var obj= new Users();
+  return res.send(await obj.createUser(name,email,phone,username, password,confPassword))
+
+})
 // router.get("/login",async(req,res)=>{
   
 // })
@@ -29,43 +34,86 @@ router.post("/login",async(req,res)=>{
   var username=req.body.username;
   var password = req.body.password;
   var obj= new Users();
-  obj.loginUser(username,password)
+  
+  return res.send(await obj.loginUser(username,password))
 
 
 })
-//router.get("/profile",profile)
-router.get("/home",(req,res)=>{
-  res.redirect("categories")
-})
-router.get("/alreadyaccount",(req,res)=>{
-  res.redirect("login")
-})
-router.get("/logout",(req,res)=>{
-  res.redirect("home")
-})
-// router.post("/emailSend",async(req,res)=>{
-//   var email=req.body.email
-//   var obj= new Users();
-//   obj.emailSend()
-
+// router.get("/profile",profile)
+// router.get("/home",(req,res)=>{
+//   res.redirect("categories")
 // })
-// router.post("/otpcheck",verifyToken,otpcheck)
-// router.post("/changePassword",verifyToken,changePassword)
+// router.get("/alreadyaccount",(req,res)=>{
+//   res.redirect("login")
+// })
+// router.get("/logout",(req,res)=>{
+//   res.redirect("home")
+// })
+router.post("/emailSend",async(req,res)=>{
+  var email=req.body.email
+  var obj= new Users();
+  
+          
+  await verifyToken(req,res)
+  //console.log(await verifyToken(req,res))
+  return res.send(await obj.emailSend(email))
 
-// router.get('/books', verifyToken,booksController.getAllBooks)
+})
+router.post("/otpcheck",async(req,res)=>{
+  var otpCode=req.body.code
+  var obj= new Users();
+  return res.send(await obj.otpcheck(otpCode))
+
+})
+router.post("/changePassword",async(req,res)=>{
+  var email=req.body.email
+  var password=req.body.password
+  var obj= new Users();
+  return res.send(await obj.changePassword(email,password))
+
+})
+
+//router.get('/books', verifyToken,booksController.getAllBooks)
 // router.get('/search', verifyToken,booksController.searchBook)
-// router.post('/category', verifyToken,booksController.groupcat)
-// router.post("/nextbutton",verifyToken,loginUser)
-// router.post("/selectPlan",verifyToken,membership)
+//router.post('/category', verifyToken,booksController.groupcat)
+router.post("/nextbutton",async(req,res)=>{
+  var username=req.body.username;
+  var password = req.body.password;
+  var obj= new Users();
+  return res.send(await obj.loginUser(username,password))
 
-// router.post("/bookclick",verifyToken,userBookList)
-// router.post("/bookreturn",verifyToken,bookreturn)  
 
-var verifyToken =async (token) =>{
+})
+ router.post("/selectPlan",async(req,res)=>{
+  const{membershipPlan_id,transaction_id,validity}=req.body
+  
+  var obj= new membershipcont();
+  return res.send(await obj.membership(membershipPlan_id,transaction_id,validity))
+
+
+})
+
+router.post("/bookclick",async(req,res)=>{
+  var bookId=req.body.bookId;
+  
+  var obj= new membershipcont();
+  return res.send(await obj.userBookList(bookId))
+})
+ router.post("/bookreturn",async(req,res)=>{
+  var bookId=req.body.bookId;
+  
+  var obj= new membershipcont();
+  return res.send(await obj.bookreturn(bookId))
+})
+var verifyToken =async (req,res,next) =>{
   try {
+    let token = req.header('Authorization')
     console.log(token)
+      
+    
     if (!token) {
-      return res.status(403).send("Access Denied");
+      res.send('Access Denied')
+      //return "(status:'success,message:'Access Denied')";cd 
 
     }
     if (token.startsWith('Bearer ')) {
@@ -74,19 +122,22 @@ var verifyToken =async (token) =>{
     }
     const decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     var userId = decoded.id
+    //return userId
     
     //req.user = userId
     var data = await userData.findOne({ _id: userId })
     console.log(data.is_admin)
     if (data.is_admin == false)
-    //return {"id":1,"isAdmin":false}
-       console.log("user")
+    return "{'isAdmin':'false'}"
+       
     else {
-      console.log("admin")
+      return "{'isAdmin':'true'}"
+      
     }
-    return userId
+  next()
   } catch (err) {
-    res.status(500).json({ error: err.message })
+     res.send(err)
+    //return "{status:'fail',message: err.message }"
   }
 }
 mongoose.connect("mongodb://127.0.0.1:27017/userDetails").then(()=>{

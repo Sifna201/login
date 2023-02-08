@@ -11,31 +11,30 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 class Users{
-   async createUser (req, res)  {
-    const { name,
-      email,
-      phone,
-      username,
-      password,
-      confPassword,
-    } = req.body;
+   async  createUser (name,
+    email,
+    phone,
+    username,
+    password,
+    confPassword)  {
+    
 
     try {
       const existingUser = await userData.findOne({ $or: [{ email }, { phone }] });
       if (!name || !email || !phone || !username || !password || !confPassword) {
-        return res.json({ status: "fail", message: 'Please enter all fields' });
+        return "{ 'status': 'fail',' message': 'Please enter all fields' }";
       }
 
       if (password != confPassword) {
-        return res.json({ status: "fail", message: 'Passwords do not match' });
+        return "{' status': 'fail', message: 'Passwords do not match' }";
       }
 
       if (password.length < 6) {
-        return res.json({ status: "fail", message: 'Password must be at least 6 characters' });
+        return "{ status: 'fail', message: 'Password must be at least 6 characters' }";
       }
 
       if (existingUser)
-        return res.json({ status: "fail", message: "Email or phone already registerd " });
+        return "{ status: 'fail', message: 'Email or phone already registerd ' }";
 
       else {
         const hashPassword = await bcrypt.hash(password, 12);
@@ -50,10 +49,7 @@ class Users{
         });
 
         await result.save();
-        res.json({
-          status: "success",
-          message: "register successfully ,thank you!"
-        })
+        return "{ status: 'success',message: 'register successfully ,thank you!'}"
 
 
       }
@@ -62,13 +58,13 @@ class Users{
     }
   }
     async loginUser (username, password){
-      
   
+    
       try {
-        const existingUser = await userData.findOne({ username });
+        const existingUser = await userData.findOne({ username :username});
   
         if (!existingUser)
-          return res.json({ status: "fail", message: "user not found " });
+          return "{ 'status': 'fail', 'message': 'user not found ' }";
   
         const isPasswordCorrect = await bcrypt.compare(
           password,
@@ -76,14 +72,14 @@ class Users{
         );
   
         if (!isPasswordCorrect)
-          return res.json({ status: "fail", message: "incorrect password " });
-        console.log(existingUser._id)
+          return "{ 'status': 'fail',' message': 'incorrect password ' }";
+        //console.log(existingUser._id)
         let payload = { "id": existingUser._id };
         let token = jwt.sign(payload, process.env.TOKEN_SECRET, { noTimestamp: true, expiresIn: '1h' });
   
         
-        res.cookie('cookie', token, { expires: new Date(Date.now() + 9999999) });
-        res.json({ status: "success", message: "login successfully" });
+        //res.cookie('cookie', token, { expires: new Date(Date.now() + 9999999) });
+        return "{ 'status': 'success', 'message': 'login successfully' }";
   
       } catch (error) {
         console.log(error.message);
@@ -92,36 +88,36 @@ class Users{
     async profile (req, res)  {
       try {
         const Users = await userData.find()
-        res.status(200).send(Users)
+        return "{ status: 'success', message: Users}"
       } catch (error) {
         console.log(error)
       }
     }
   
     
-    async emailSend (req, res)  {
-      let data = await userData.findOne({ email: req.body.email })
+    async emailSend (email)  {
+      let data = await userData.findOne({ email: email })
   
       if (data) {
         let otpCode = Math.floor((Math.random() * (99999 - 10000) + 100000))
         let otpData = new Otp({
-          email: req.body.email,
+          email: email,
           code: otpCode,
           expireIn: new Date().getTime() + 300 * 1000
         })
   
         let otpRespone = await otpData.save()
         var otpResponeCode = otpRespone.code
-        mailer(req.body.email, otpResponeCode)
-        res.json({ status: "success", message: "please check your email" })
+        mailer(email, otpResponeCode)
+        return "{ status: 'success', message: 'please check your email' }"
       }
       else {
-        res.json({ status: "fail", message: "email not exist" })
+        return "{ status: 'fail', message:  'email not exist' }"
       }
   
     }
-    async otpcheck  (req, res)  {
-      otpCode = req.body.code
+    async otpcheck  (otpCode)  {
+      
       let data = await Otp.find({ code: otpCode })
       //let data=await otp.findOne({code:otpCode})
       console.log(data)
@@ -132,55 +128,88 @@ class Users{
         let diff = data[0].expireIn - currentTime
         console.log(diff)
         if (diff < 0) {
-          res.json({ status: "fail", message: "token expire" })
+          return "{  status: 'fail', message: 'token expire'}"
         } else {
-          res.json({ status: "success", message: "otp approved" })
+          return "{ status: 'success', message: 'otp approved'}"
         }
       }
       else {
-        res.json({ status: "fail", message: "invalid otp" })
+        return "{ status: 'fail', message: 'invalid otp'}"
       }
     }
-    async changePassword(req, res)  {
-      let user = await userData.findOne({ email: req.body.email })
+    async changePassword(email,password)  {
+      let user = await userData.findOne({ email:email })
       //console.log(user)
-      const hashPassword = await bcrypt.hash(req.body.password, 12);
+      const hashPassword = await bcrypt.hash(password, 12);
       user.password = hashPassword
       console.log(user.password)
       user.save()
-      res.json({ status: "success", message: "password changed successfully" })
+      return "{ status: 'success', message: 'password changed successfully' }"
     }
-  }
+  //    async verifyToken(token) {
+  //     try {
+        
+        
+  //       if (!token) {
+  //         //res.send('Access Denied')
+  //         return "(status:'success,message:'Access Denied')";
+    
+  //       }
+  //       if (token.startsWith('Bearer ')) {
+  //         token = token.slice(7, token.length).trimLeft()
+    
+  //       }
+  //       const decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+  //       var userId = decoded.id
+  //       //return userId
+        
+  //       //req.user = userId
+  //       var data = await userData.findOne({ _id: userId })
+  //       console.log(data.is_admin)
+  //       if (data.is_admin == false)
+  //       return "{'isAdmin':'false'}"
+           
+  //       else {
+  //         return "{'isAdmin':'true'}"
+          
+  //       }
+  //     next()
+  //     } catch (err) {
+  //        res.send(err)
+  //       return "{status:'fail',message: err.message }"
+  //     }
+  //   }
+  // }
   
   
-  const mailer = (email, otp) => {
-    var nodemailer = require('nodemailer')
-    //   console.log(otp)
-    //  var otpResponeCode=strings.bold(otp)
-    //  console.log(otpResponeCode)
-    var transporter = nodemailer.createTransport({
-      service: 'gmail',
-      port: 587,
-      secure: false,
-      auth: {
-        user: 'ayishasifna@gmail.com',
-        pass: 'kvthkbvgfnzpyywe'
-      }
-    })
-    var mailOptions = {
-      from: 'ayishasifna@gmail.com',
-      to: "fathimathasneem3621@gmail.com",
-      subject: otp + "otp verification",
-      html: "<h3>Hi! Here is your single use verification code for:</h3>" + "<h1 style='font-weight:bold;'>" + otp + "</h1>" +
-        "<p>Be quick! it expire soon</p>"
-    }
-    transporter.sendMail(mailOptions, (err, info) => {
-      if (err) {
-        console.log(err)
-      } else {
-        console.log("Email sent:" + info.response)
-      }
-    })
+  // const mailer = (email, otp) => {
+  //   var nodemailer = require('nodemailer')
+  //   //   console.log(otp)
+  //   //  var otpResponeCode=strings.bold(otp)
+  //   //  console.log(otpResponeCode)
+  //   var transporter = nodemailer.createTransport({
+  //     service: 'gmail',
+  //     port: 587,
+  //     secure: false,
+  //     auth: {
+  //       user: 'ayishasifna@gmail.com',
+  //       pass: 'kvthkbvgfnzpyywe'
+  //     }
+  //   })
+  //   var mailOptions = {
+  //     from: 'ayishasifna@gmail.com',
+  //     to: "fathimathasneem3621@gmail.com",
+  //     subject: otp + "otp verification",
+  //     html: "<h3>Hi! Here is your single use verification code for:</h3>" + "<h1 style='font-weight:bold;'>" + otp + "</h1>" +
+  //       "<p>Be quick! it expire soon</p>"
+  //   }
+  //   transporter.sendMail(mailOptions, (err, info) => {
+  //     if (err) {
+  //       console.log(err)
+  //     } else {
+  //       console.log("Email sent:" + info.response)
+  //     }
+  //   })
   }
   
   
